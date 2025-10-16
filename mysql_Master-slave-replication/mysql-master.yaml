@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql-master
+spec:
+  serviceName: mysql-master
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-master
+  template:
+    metadata:
+      labels:
+        app: mysql-master
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:8.0
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secrets
+              key: root-password
+        volumeMounts:
+        - name: config
+          mountPath: /etc/mysql/conf.d
+        - name: data
+          mountPath: /var/lib/mysql
+        command:
+        - "sh"
+        - "-c"
+        - |
+          cp /etc/mysql/conf.d/my.cnf /etc/mysql/my.cnf
+          exec docker-entrypoint.sh mysqld
+      volumes:
+      - name: config
+        configMap:
+          name: mysql-master-config
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-master
+spec:
+  ports:
+  - port: 3306
+  selector:
+    app: mysql-master

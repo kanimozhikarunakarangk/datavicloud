@@ -1,0 +1,3 @@
+[submodule "mysql-slave"]
+	path = mysql-slave
+	url = https://github.com/kanimozhikarunakarangk/mysql-slave.git

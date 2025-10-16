@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mysql-slave.fullname" . }}
+spec:
+  serviceName: {{ .Values.service.name }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "mysql-slave.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "mysql-slave.name" . }}
+    spec:
+      containers:
+      - name: mysql
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mysqlRootPasswordSecret.name }}
+              key: {{ .Values.mysqlRootPasswordSecret.key }}
+        volumeMounts:
+        - name: config
+          mountPath: /etc/mysql/conf.d
+        - name: data
+          mountPath: /var/lib/mysql
+        command:
+        - "sh"
+        - "-c"
+        - |
+          cp /etc/mysql/conf.d/my.cnf /etc/mysql/my.cnf
+          exec docker-entrypoint.sh mysqld
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "mysql-slave.fullname" . }}-config
+      - name: data
+{{- if eq .Values.storage.type "emptyDir" }}
+        emptyDir: {}
+{{- else }}
+        persistentVolumeClaim:
+          claimName: {{ include "mysql-slave.fullname" . }}-pvc
+{{- end }}

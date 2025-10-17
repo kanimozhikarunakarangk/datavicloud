@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jenkins.fullname" . }}
+  labels:
+    app: {{ include "jenkins.name" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "jenkins.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "jenkins.name" . }}
+    spec:
+      containers:
+        - name: jenkins
+          image: "{{ .Values.controller.image }}"
+          ports:
+            - containerPort: {{ .Values.controller.targetPort }}
+          env:
+            - name: JENKINS_OPTS
+              value: "--prefix=/"
+            - name: JAVA_OPTS
+              value: "-Djenkins.install.runSetupWizard=false"
+          volumeMounts:
+            - name: jenkins-home
+              mountPath: /var/jenkins_home
+      volumes:
+        - name: jenkins-home
+          persistentVolumeClaim:
+            claimName: {{ include "jenkins.fullname" . }}

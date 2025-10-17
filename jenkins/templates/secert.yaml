@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "jenkins.fullname" . }}-secret
+type: Opaque
+stringData:
+  jenkins-admin-user: {{ .Values.controller.adminUser }}
+  jenkins-admin-password: {{ .Values.controller.adminPassword }}

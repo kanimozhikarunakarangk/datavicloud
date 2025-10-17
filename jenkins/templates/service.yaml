@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "jenkins.fullname" . }}
+  labels:
+    app: {{ include "jenkins.name" . }}
+spec:
+  type: {{ .Values.controller.serviceType }}
+  ports:
+    - port: {{ .Values.controller.servicePort }}
+      targetPort: {{ .Values.controller.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ include "jenkins.name" . }}

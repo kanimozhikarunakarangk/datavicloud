@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jenkins.fullname" . }}-config
+data:
+  plugins.txt: |
+    {{- range .Values.controller.installPlugins }}
+    {{ . }}
+    {{- end }}
+  casc.yaml: |
+    jenkins:
+      systemMessage: "Welcome to Jenkins on Kubernetes!"
